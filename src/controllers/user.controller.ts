@@ -23,10 +23,10 @@ class UserController {
     });
   });
 
-  getUserById = asyncHandler(async (req: Request, res: Response) => {
+  getUserByUuid = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string;
 
-    const user = await this.service.getUserById(id);
+    const user = await this.service.getUserByUuid(id);
 
     res.json({
       success: true,

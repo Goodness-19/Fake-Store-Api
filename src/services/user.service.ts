@@ -4,6 +4,27 @@ import bcrypt from "bcrypt";
 class UserService {
   private repo = new UserRepository();
 
+  private async checkEmailDuplicate(email: string) {
+    const existingUser = await this.repo.findByEmail(email);
+    if (existingUser && existingUser.email) {
+      const err: any = new Error(
+        "Duplicate entry, please check the email and try again",
+      );
+      err.statusCode = 409;
+      throw err;
+    }
+  }
+
+  private async checkUserExist(uuid: string) {
+    const user = await this.repo.findByUuid(uuid);
+    if (!user) {
+      const err: any = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
+    }
+    return user;
+  }
+
   async createUser(data: {
     username: string;
     email: string;
@@ -30,28 +51,21 @@ class UserService {
     return this.repo.findAll();
   }
 
-  async getUserById(id: string) {
-    const user = await this.repo.findById(id);
-
-    if (!user) throw new Error("User not found");
-
-    return user;
+  async getUserByUuid(uuid: string) {
+    return await this.checkUserExist(uuid);
   }
 
-  async updateUser(id: string, data: any) {
-    const user = await this.repo.findById(id);
-
-    if (!user) throw new Error("User not found");
-
-    return this.repo.update(id, data);
+  async updateUser(uuid: string, data: any) {
+    const user = await this.checkUserExist(uuid);
+     await this.checkEmailDuplicate(data.email);
+    return this.repo.update(uuid, data);
   }
 
-  async deleteUser(id: string) {
-    const user = await this.repo.findById(id);
+  async deleteUser(uuid: string) {
+    await this.checkUserExist(uuid);
 
-    if (!user) throw new Error("User not found");
 
-    await this.repo.delete(id);
+    const result = await this.repo.delete(uuid);
 
     return { message: "User deleted successfully" };
   }

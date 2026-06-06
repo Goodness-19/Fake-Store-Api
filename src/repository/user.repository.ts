@@ -1,30 +1,32 @@
 import db from "../config/mySql";
+import {v4 as uuidv4} from "uuid";
 
 class UserRepository {
   async create(data: any) {
     const { username, email, password } = data;
+     const uuid = uuidv4();
 
     const [result]: any = await db.query(
-      "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-      [username, email, password],
+      "INSERT INTO users (uuid, username, email, password) VALUES (?, ?, ?, ?)",
+      [uuid, username, email, password],
     );
 
     return {
-      id: result.insertId,
+      uuid: uuid,
       username,
       email,
     };
   }
 
   async findAll() {
-    const [rows]: any = await db.query("SELECT id, username, email FROM users");
+    const [rows]: any = await db.query("SELECT uuid, username, email FROM users");
     return rows;
   }
 
-  async findById(id: string) {
+  async findByUuid(uuid: string) {
     const [rows]: any = await db.query(
-      "SELECT id, username, email FROM users WHERE id = ?",
-      [id],
+      "SELECT uuid, username, email FROM users WHERE uuid = ?",
+      [uuid],
     );
     return rows[0];
   }
@@ -36,26 +38,26 @@ class UserRepository {
     return rows[0];
   }
 
-  async update(id: string, data: any) {
+  async update(uuid: string, data: any) {
     const { username, email } = data;
 
-    await db.query("UPDATE users SET username = ?, email = ? WHERE id = ?", [
+    await db.query("UPDATE users SET username = ?, email = ? WHERE uuid = ?", [
       username,
       email,
-      id,
+      uuid,
     ]);
 
     const [rows]: any = await db.query(
-      "SELECT id, username, email FROM users WHERE id = ?",
-      [id],
+      "SELECT uuid, username, email FROM users WHERE uuid = ?",
+      [uuid],
     );
 
     return rows[0];
   }
 
-  async delete(id: string) {
-    const [result]: any = await db.query("DELETE FROM users WHERE id = ?", [
-      id,
+  async delete(uuid: string) {
+    const [result]: any = await db.query("DELETE FROM users WHERE uuid = ?", [
+      uuid,
     ]);
 
     return result;
